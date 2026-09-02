@@ -21020,6 +21020,7 @@ dependencies = [
  "command_palette",
  "gpui",
  "settings",
+ "theme",
  "theme_settings",
  "ui",
  "util",
