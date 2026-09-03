@@ -1,5 +1,6 @@
 use collab_ui::collab_panel;
 use gpui::{App, Menu, MenuItem, OsAction};
+use project::DisableAiSettings;
 use release_channel::ReleaseChannel;
 use terminal_view::terminal_panel;
 use zed_actions::{Quit, assistant, debug_panel, dev, git_panel, project_panel};
@@ -43,12 +44,18 @@ pub fn app_menus(cx: &mut App) -> Vec<Menu> {
         MenuItem::action("Collab Panel", collab_panel::ToggleFocus),
         MenuItem::action("Terminal Panel", terminal_panel::Toggle),
         MenuItem::action("Debugger Panel", debug_panel::ToggleFocus),
-        MenuItem::action("Agent Panel", assistant::ToggleFocus),
-        MenuItem::action("Git Panel", git_panel::ToggleFocus),
-        MenuItem::separator(),
-        MenuItem::action("Diagnostics", diagnostics::Deploy),
-        MenuItem::separator(),
     ];
+
+    // The Agent Panel is an AI surface; keep it out of the View menu when the
+    // user has opted out of AI via the `disable_ai` setting (#63497).
+    if !DisableAiSettings::get_global(cx).disable_ai {
+        view_items.push(MenuItem::action("Agent Panel", assistant::ToggleFocus));
+    }
+
+    view_items.push(MenuItem::action("Git Panel", git_panel::ToggleFocus));
+    view_items.push(MenuItem::separator());
+    view_items.push(MenuItem::action("Diagnostics", diagnostics::Deploy));
+    view_items.push(MenuItem::separator());
 
     if ReleaseChannel::try_global(cx) == Some(ReleaseChannel::Dev) {
         view_items.push(MenuItem::action(
